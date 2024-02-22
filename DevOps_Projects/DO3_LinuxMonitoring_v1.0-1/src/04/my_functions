@@ -1,0 +1,98 @@
+#!/bin/bash
+
+check_input() {
+	flag1=0
+	flag2=0
+	flag3=0
+	flag4=0
+	REGEX="^[1-6]?$"
+
+  if ! [[ $column1_background =~ $REGEX ]] || [ -z "$column1_background" ];then
+		column1_background=1;flag1=1;fi
+  if ! [[ $column1_font_color =~ $REGEX ]] || [ -z "$column1_font_color" ];then
+		column1_font_color=3;flag2=1;fi
+  if ! [[ $column2_background =~ $REGEX ]] || [ -z "$column2_background" ];then
+		column2_background=1;flag3=1;fi
+  if ! [[ $column2_font_color =~ $REGEX ]] || [ -z "$column2_font_color" ];then
+		column2_font_color=3;flag4=1;fi
+}
+
+get_color_font() {
+	case "$1" in
+	1) echo "\e[97m";;
+	2) echo "\e[31m";;
+	3) echo "\e[32m";;
+	4) echo "\e[34m";;
+	5) echo "\e[35m";;
+	6) echo "\e[30m";;
+	esac
+}
+
+get_color_background() {
+	case "$1" in
+	1) echo "\e[107m";;
+	2) echo "\e[41m";;
+	3) echo "\e[42m";;
+	4) echo "\e[44m";;
+	5) echo "\e[45m";;
+	6) echo "\e[40m";;
+	esac
+}
+
+get_name_color() {
+	case "$1" in
+	1) echo "white";;
+	2) echo "red";;
+	3) echo "green";;
+	4) echo "blue";;
+	5) echo "purple";;
+	6) echo "black";;
+	esac
+}
+
+print_all() {
+	local	P1=$(get_color_background $column1_background)$(get_color_font $column1_font_color)
+	local P2=$(get_color_background $column2_background)$(get_color_font $column2_font_color)
+	local END="\e[0m"
+
+	echo -e "${P1}HOSTNAME =${END}${P2} $HOSTNAME${END}"
+	echo -e "${P1}TIMEZONE =${END}${P2} $(cat /etc/timezone)${END}"
+	echo -e "${P1}USER =${END}${P2} $USER${END}"
+	echo -e "${P1}OS =${END}${P2} $OSTYPE${END}"
+	echo -e "${P1}DATE =${END}${P2} $(date +%d) $(date +%b) $(date +%Y) $(date +%H:%M:%S)${END}"
+	echo -e "${P1}UPTIME =${END}${P2} $(uptime -p)${END}"
+	echo -e "${P1}UPTIME_SEC =${END}${P2} $(awk '{print $1}' /proc/uptime)${END}"
+	echo -e "${P1}IP =${END}${P2} $(hostname -I)${END}"
+	echo -e "${P1}MASK =${END}${P2} $(ifconfig | grep netmask | sed -n 1p | awk '{print $4}')${END}"
+	echo -e "${P1}GATEWAY =${END}${P2} $(ip r | grep default | awk '{print $3}')${END}"
+	echo -e "${P1}RAM_TOTAL =${END}${P2} `echo "scale=3; $(free -m | grep Mem | awk '{print $2}') / 1024.0" | bc` GB${END}"
+	echo -e "${P1}RAM_USED =${END}${P2} `echo "scale=3; $(free -m | grep Mem | awk '{print $3}') / 1024.0" | bc` GB${END}"
+	echo -e "${P1}RAM_FREE =${END}${P2} `echo "scale=3; $(free -m | grep Mem | awk '{print $4}') / 1024.0" | bc` GB${END}"
+	echo -e "${P1}SPACE_ROOT =${END}${P2} `echo "scale=2; $(df / | grep dev | awk '{print $2}') / 1024.0" | bc` MB${END}"
+	echo -e "${P1}SPACE_ROOT_USED =${END}${P2} `echo "scale=2; $(df / | grep dev | awk '{print $3}') / 1024.0" | bc` MB${END}"
+	echo -e "${P1}SPACE_ROOT_FREE =${END}${P2} `echo "scale=2; $(df / | grep dev | awk '{print $4}') / 1024.0" | bc` MB${END}"
+}
+
+print_colors() {
+	echo
+	color=$(get_name_color $column1_background)
+	if [ $flag1 == "1" ];then
+		echo "Column 1 background = default ($color)"
+	else
+		echo "Column 1 background = $column1_background ($color)";fi
+	color=$(get_name_color $column1_font_color)
+	if [ $flag2 == "1" ];then
+		echo "Column 1 font color = default ($color)"
+	else
+		echo "Column 1 font color = $column1_font_color ($color)";fi
+	color=$(get_name_color $column2_background)
+	if [ $flag3 == "1" ];then
+		echo "Column 2 background = default ($color)"
+	else
+		echo "Column 2 background = $column2_background ($color)";fi
+	color=$(get_name_color $column2_font_color)
+	if [ $flag4 == "1" ];then
+		echo "Column 2 font color = default ($color)"
+	else
+		echo "Column 2 font color = $column2_font_color ($color)";fi
+}

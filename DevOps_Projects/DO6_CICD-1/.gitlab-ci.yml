@@ -1,0 +1,49 @@
+stages:
+  - style_test 
+  - integration_test
+  - build
+  - deploy
+
+style_test:
+  stage: style_test
+  script:
+    - make check_style -C ./src/cat
+    - make check_style -C ./src/grep
+  after_script:
+    - ./src/part_6/tg_bot_messenge $CI_JOB_STATUS "Style test"
+
+integration_test:
+  stage: integration_test
+  script:
+    - make test -C ./src/cat
+    - make test -C ./src/grep
+  after_script:
+    - ./src/part_6/tg_bot_messenge $CI_JOB_STATUS "Integration test"
+
+build:
+  stage: build
+  script:
+    - make s21_cat -C ./src/cat
+    - make s21_grep -C ./src/grep
+    - mkdir -p build
+    - mv ./src/cat/s21_cat ./build
+    - mv ./src/grep/s21_grep ./build
+  after_script:
+    - ./src/part_6/tg_bot_messenge $CI_JOB_STATUS "Build"
+  artifacts:
+    paths:
+      - build
+    expire_in: 30 days
+
+deploy:
+  stage: deploy
+  when: manual
+  variables:
+    REMOTE_USERNAME: "root"
+    SOURCE_PATH: "./build"
+    REMOTE_IP: "172.17.0.3"
+    REMOTE_PATH: "/usr/local/bin"
+  script:
+    - scp -r "$SOURCE_PATH" "$REMOTE_USERNAME"@"$REMOTE_IP":"$REMOTE_PATH"
+  after_script:
+    - ./src/part_6/tg_bot_messenge $CI_JOB_STATUS "Deploy"
